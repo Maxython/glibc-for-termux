@@ -2,9 +2,10 @@ TERMUX_PKG_HOMEPAGE=https://mariadb.org
 TERMUX_PKG_DESCRIPTION="A drop-in replacement for mysql server"
 TERMUX_PKG_LICENSE="GPL-2.0"
 TERMUX_PKG_MAINTAINER="@termux-pacman"
-TERMUX_PKG_VERSION="11.5.2"
-TERMUX_PKG_SRCURL=https://mirror.netcologne.de/mariadb/mariadb-${TERMUX_PKG_VERSION}/source/mariadb-${TERMUX_PKG_VERSION}.tar.gz
-TERMUX_PKG_SHA256=e25fac00aeb34610faf62182836a14e3310c0ca5d882e9109f63bd8dfdc3542d
+TERMUX_PKG_VERSION="11.7.1"
+TERMUX_PKG_SRCURL=git+https://github.com/MariaDB/server
+TERMUX_PKG_SHA256=3a2aaa2b6c82a374f19aad2bcbe5f51037831ec497029558d594ff822b2370da
+TERMUX_PKG_GIT_BRANCH="mariadb-${TERMUX_PKG_VERSION}"
 TERMUX_PKG_DEPENDS="openssl-glibc, libxcrypt-glibc, pcre2-glibc, zlib-glibc, zstd-glibc, ncurses-glibc, libbz2-glibc, libxml2-glibc, liblz4-glibc, perl-glibc"
 TERMUX_PKG_BUILD_DEPENDS="boost-glibc"
 TERMUX_PKG_CMAKE_CROSSCOMPILING=false
@@ -52,9 +53,16 @@ glibc/sql-bench
 glibc/mariadb-test
 "
 
+termux_step_post_get_source() {
+	local s=$(find . -type f ! -path '*/.git/*' -print0 | xargs -0 sha256sum | LC_ALL=C sort | sha256sum)
+	if [[ "${s}" != "${TERMUX_PKG_SHA256}  "* ]]; then
+		termux_error_exit "Checksum mismatch for source files."
+	fi
+}
+
 termux_step_pre_configure() {
-	CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
-	CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+	CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2} -Wno-return-mismatch -Wno-incompatible-pointer-types"
+	CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2} -fpermissive"
 }
 
 termux_step_create_debscripts() {
