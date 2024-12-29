@@ -2,10 +2,10 @@ TERMUX_PKG_HOMEPAGE=https://gcc.gnu.org/
 TERMUX_PKG_DESCRIPTION="Runtime libraries shipped by GCC"
 TERMUX_PKG_LICENSE="GPL-3.0"
 TERMUX_PKG_MAINTAINER="@termux-pacman"
-TERMUX_PKG_VERSION=14.2.1
-_COMMIT=694613a7f9adfa9c87e733adc63839c8801f2b5c
+TERMUX_PKG_VERSION=14.2.2
+_COMMIT=65c8fd7b017482c6d6bd0c7a7c6e296f016e38d0
 TERMUX_PKG_SRCURL=git+https://sourceware.org/git/gcc
-TERMUX_PKG_SHA256=e3abe0e81ee3eba35a592ef75c82fe9ae23c77631ec4f6726f7fa08444769678
+TERMUX_PKG_SHA256=8ac196a7ded1ee3fbd43e8fc374070ff358f790ee93a1d5e7499ab4728968b50
 TERMUX_PKG_GIT_BRANCH="master"
 #TERMUX_PKG_SRCURL=https://ftp.gnu.org/gnu/gcc/gcc-$TERMUX_PKG_VERSION/gcc-$TERMUX_PKG_VERSION.tar.xz
 #TERMUX_PKG_SHA256=a7b39bc69cbf9e25826c5a60ab26477001f7c08d85cec04bc0e29cabed6f3cc9
@@ -35,8 +35,8 @@ termux_step_pre_configure() {
 	echo "${_COMMIT}" > ${TERMUX_PKG_SRCDIR}/gcc/DEV-PHASE
 	CFLAGS=${CFLAGS/-Werror=format-security/}
 	CXXFLAGS=${CXXFLAGS/-Werror=format-security/}
-	CFLAGS+=" -I${TERMUX_PREFIX}/include -L${TERMUX_PREFIX}/lib"
-	CXXFLAGS+=" -I${TERMUX_PREFIX}/include -L${TERMUX_PREFIX}/lib"
+	CFLAGS+=" -I${TERMUX_PREFIX}/include -L${TERMUX_PREFIX}/lib -g3"
+	CXXFLAGS+=" -I${TERMUX_PREFIX}/include -L${TERMUX_PREFIX}/lib -g3"
 }
 
 termux_step_configure() {
