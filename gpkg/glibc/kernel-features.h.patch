@@ -1,0 +1,26 @@
+diff --git a/sysdeps/unix/sysv/linux/arm/kernel-features.h b/sysdeps/unix/sysv/linux/arm/kernel-features.h
+index f17c2f9e..c38df3e1 100644
+--- a/sysdeps/unix/sysv/linux/arm/kernel-features.h
++++ b/sysdeps/unix/sysv/linux/arm/kernel-features.h
+@@ -38,9 +38,6 @@
+    non-standard name.  */
+ #define __NR_fadvise64_64 __NR_arm_fadvise64_64
+ 
+-#define __ASSUME_RECV_SYSCALL   1
+-#define __ASSUME_SEND_SYSCALL	1
+-
+ /* Support for the mlock2 and copy_file_range syscalls was added to
+    the compat syscall table for 64-bit kernels in 4.7, although
+    present in 32-bit kernels from 4.4 and 4.5 respectively.  */
+diff --git a/sysdeps/unix/sysv/linux/kernel-features.h b/sysdeps/unix/sysv/linux/kernel-features.h
+index a25cf07e..00ec9c2d 100644
+--- a/sysdeps/unix/sysv/linux/kernel-features.h
++++ b/sysdeps/unix/sysv/linux/kernel-features.h
+@@ -70,7 +70,6 @@
+    separate syscalls were only added later.  */
+ #define __ASSUME_SENDMSG_SYSCALL	1
+ #define __ASSUME_RECVMSG_SYSCALL	1
+-#define __ASSUME_ACCEPT_SYSCALL		1
+ #define __ASSUME_CONNECT_SYSCALL	1
+ #define __ASSUME_RECVFROM_SYSCALL	1
+ #define __ASSUME_SENDTO_SYSCALL		1

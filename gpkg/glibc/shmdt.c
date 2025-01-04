@@ -1,14 +1,10 @@
-#include <ipc_priv.h>
-#include <sysdep.h>
-#include <errno.h>
 #include <shmem-android.h>
 #include <sys/mman.h>
 
 /* Detach shared memory segment starting at address specified by SHMADDR
    from the caller's data segment.  */
 
-int shmdt(void const* shmaddr)
-{
+int shmdt(const void* shmaddr) {
 	ashv_check_pid();
 
 	pthread_mutex_lock(&mutex);

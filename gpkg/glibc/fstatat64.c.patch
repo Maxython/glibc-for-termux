@@ -1,6 +1,6 @@
---- glibc-2.39/sysdeps/unix/sysv/linux/fstatat64.c	2024-01-31 03:34:58.000000000 +0300
-+++ glibc-2.39/sysdeps/unix/sysv/linux/fstatat64.c.patch	2024-02-09 11:13:53.292656710 +0300
-@@ -38,43 +38,6 @@
+--- glibc-2.39/sysdeps/unix/sysv/linux/fstatat64.c	2024-12-11 13:13:54.323887003 +0300
++++ glibc-2.39/sysdeps/unix/sysv/linux/fstatat64.c.patch	2024-12-11 13:16:09.283886951 +0300
+@@ -38,46 +38,8 @@
                  "__blkcnt_t and __blkcnt64_t must match");
  #endif
  
@@ -43,17 +43,33 @@
 -
  /* Only statx supports 64-bit timestamps for 32-bit architectures with
     __ASSUME_STATX, so there is no point in building the fallback.  */
- #if !FSTATAT_USE_STATX || (FSTATAT_USE_STATX && !defined __ASSUME_STATX)
-@@ -147,11 +110,7 @@
-   int r;
+-#if !FSTATAT_USE_STATX || (FSTATAT_USE_STATX && !defined __ASSUME_STATX)
+ static inline int
+ fstatat64_time64_stat (int fd, const char *file, struct __stat64_t64 *buf,
+ 		       int flag)
+@@ -138,24 +100,12 @@
  
- #if FSTATAT_USE_STATX
+   return r;
+ }
+-#endif
+ 
+ int
+ __fstatat64_time64 (int fd, const char *file, struct __stat64_t64 *buf,
+ 		    int flag)
+ {
+-  int r;
+-
+-#if FSTATAT_USE_STATX
 -  r = fstatat64_time64_statx (fd, file, buf, flag);
 -# ifndef __ASSUME_STATX
 -  if (r == -ENOSYS)
 -    r = fstatat64_time64_stat (fd, file, buf, flag);
 -# endif
-+  r = fstatat64_time64_stat (fd, file, buf, flag);
- #else
-   r = fstatat64_time64_stat (fd, file, buf, flag);
- #endif
+-#else
+-  r = fstatat64_time64_stat (fd, file, buf, flag);
+-#endif
+-
++  int r = fstatat64_time64_stat (fd, file, buf, flag);
+   return INTERNAL_SYSCALL_ERROR_P (r)
+ 	 ? INLINE_SYSCALL_ERROR_RETURN_VALUE (-r)
+ 	 : 0;

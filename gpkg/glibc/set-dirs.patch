@@ -1,3 +1,15 @@
+diff --git a/bits/syslog-path.h b/bits/syslog-path.h
+index badf60d3..098bfb26 100644
+--- a/bits/syslog-path.h
++++ b/bits/syslog-path.h
+@@ -23,6 +23,6 @@
+ #ifndef _BITS_SYSLOG_PATH_H
+ #define _BITS_SYSLOG_PATH_H 1
+ 
+-#define	_PATH_LOG	"/dev/log"
++#define	_PATH_LOG	"/dev/socket/logdw"
+ 
+ #endif /* bits/syslog-path.h */
 diff --git a/dirent/bug-readdir1.c b/dirent/bug-readdir1.c
 index 4c3521db..06b6faa7 100644
 --- a/dirent/bug-readdir1.c
@@ -12,19 +24,19 @@ index 4c3521db..06b6faa7 100644
      {
        if (errno == ENOENT)
 diff --git a/elf/rtld.c b/elf/rtld.c
-index a91e2a44..382a12f8 100644
+index ac4bb236..49850121 100644
 --- a/elf/rtld.c
 +++ b/elf/rtld.c
-@@ -360,7 +360,7 @@
+@@ -360,7 +360,7 @@ struct rtld_global_ro _rtld_global_ro attribute_relro =
      ._dl_fpu_control = _FPU_DEFAULT,
      ._dl_pagesize = EXEC_PAGESIZE,
      ._dl_inhibit_cache = 0,
 -    ._dl_profile_output = "/var/tmp",
 +    ._dl_profile_output = "@TERMUX_PREFIX@/var/tmp",
-
+ 
      /* Function pointers.  */
      ._dl_debug_printf = _dl_debug_printf,
-@@ -1862,7 +1862,7 @@ dl_main (const ElfW(Phdr) *phdr,
+@@ -1859,7 +1859,7 @@ dl_main (const ElfW(Phdr) *phdr,
       open().  So we do this first.  If it succeeds we do almost twice
       the work but this does not matter, since it is not for production
       use.  */
@@ -34,7 +46,7 @@ index a91e2a44..382a12f8 100644
      {
        /* Read the contents of the file.  */
 diff --git a/elf/sprof.c b/elf/sprof.c
-index 3eaa4758..9a44ac2c 100644
+index b19aca32..ecb588a2 100644
 --- a/elf/sprof.c
 +++ b/elf/sprof.c
 @@ -618,7 +618,7 @@ load_shobj (const char *name)
@@ -57,8 +69,21 @@ index 3eaa4758..9a44ac2c 100644
        name = ext_name;
  
        fd = open (ext_name, O_RDONLY);
+diff --git a/hesiod/hesiod.c b/hesiod/hesiod.c
+index ee087b03..22c50837 100644
+--- a/hesiod/hesiod.c
++++ b/hesiod/hesiod.c
+@@ -60,7 +60,7 @@
+ #include "hesiod.h"
+ #include "hesiod_p.h"
+ 
+-#define _PATH_HESIOD_CONF "/etc/hesiod.conf"
++#define _PATH_HESIOD_CONF "@TERMUX_PREFIX@/etc/hesiod.conf"
+ 
+ /* Forward */
+ 
 diff --git a/include/shm-directory.h b/include/shm-directory.h
-index 79256131..02f73070 100644
+index 5ba63e8a..6dad34ab 100644
 --- a/include/shm-directory.h
 +++ b/include/shm-directory.h
 @@ -23,7 +23,7 @@
@@ -86,7 +111,7 @@ index 19740f49..214af2b0 100644
    char *dname2;
    int r;
 diff --git a/io/bug-ftw4.c b/io/bug-ftw4.c
-index bfbf4544..93971f99 100644
+index 51738dbd..cd1eb424 100644
 --- a/io/bug-ftw4.c
 +++ b/io/bug-ftw4.c
 @@ -35,7 +35,7 @@ cb (const char *name, const struct stat64 *st, int type)
@@ -99,7 +124,7 @@ index bfbf4544..93971f99 100644
  
    if (mkdtemp (name) == NULL)
 diff --git a/libio/oldiopopen.c b/libio/oldiopopen.c
-index b3eccc13..e88a4c66 100644
+index 2a004fca..0e685497 100644
 --- a/libio/oldiopopen.c
 +++ b/libio/oldiopopen.c
 @@ -106,7 +106,7 @@ _IO_old_proc_open (FILE *fp, const char *command, const char *mode)
@@ -112,10 +137,10 @@ index b3eccc13..e88a4c66 100644
      }
    __close (child_end);
 diff --git a/libio/stdio.h b/libio/stdio.h
-index 4cf9f1c0..a0e0e0a5 100644
+index 6762cffb..1e9d5e2e 100644
 --- a/libio/stdio.h
 +++ b/libio/stdio.h
-@@ -117,7 +117,7 @@ typedef __fpos64_t fpos64_t;
+@@ -118,7 +118,7 @@ typedef __fpos64_t fpos64_t;
  
  #if defined __USE_MISC || defined __USE_XOPEN
  /* Default path prefix for `tempnam' and `tmpnam'.  */
@@ -125,7 +150,7 @@ index 4cf9f1c0..a0e0e0a5 100644
  
  #define L_tmpnam 20
 diff --git a/manual/examples/filecli.c b/manual/examples/filecli.c
-index 1ade5efe..0d7eecf2 100644
+index 9ee20d1d..ecbb0c6a 100644
 --- a/manual/examples/filecli.c
 +++ b/manual/examples/filecli.c
 @@ -22,8 +22,8 @@
@@ -140,7 +165,7 @@ index 1ade5efe..0d7eecf2 100644
  #define MESSAGE	"Yow!!! Are we having fun yet?!?"
  
 diff --git a/manual/examples/filesrv.c b/manual/examples/filesrv.c
-index 75c6ff87..f0ede166 100644
+index 2a5bbc17..25d7bc1f 100644
 --- a/manual/examples/filesrv.c
 +++ b/manual/examples/filesrv.c
 @@ -21,7 +21,7 @@
@@ -153,7 +178,7 @@ index 75c6ff87..f0ede166 100644
  
  int
 diff --git a/manual/examples/ofdlocks.c b/manual/examples/ofdlocks.c
-index 9d777f73..f85b6f5e 100644
+index f1339b52..27dc8e42 100644
 --- a/manual/examples/ofdlocks.c
 +++ b/manual/examples/ofdlocks.c
 @@ -23,7 +23,7 @@
@@ -175,7 +200,7 @@ index 9d777f73..f85b6f5e 100644
    for (i = 0; i < ITERATIONS; i++)
      {
 diff --git a/nis/ypclnt.c b/nis/ypclnt.c
-index 19a53a10..416985a4 100644
+index 8f883fc9..61d889dc 100644
 --- a/nis/ypclnt.c
 +++ b/nis/ypclnt.c
 @@ -33,7 +33,7 @@
@@ -188,7 +213,7 @@ index 19a53a10..416985a4 100644
  
  struct dom_binding
 diff --git a/nscd/nscd-client.h b/nscd/nscd-client.h
-index 5588ade9..ff08ae36 100644
+index 3ec350e8..0ee1addf 100644
 --- a/nscd/nscd-client.h
 +++ b/nscd/nscd-client.h
 @@ -35,13 +35,13 @@
@@ -208,8 +233,21 @@ index 5588ade9..ff08ae36 100644
  
  /* Maximum allowed length for the key.  */
  #define MAXKEYLEN 1024
+diff --git a/nss/bug-erange.c b/nss/bug-erange.c
+index b709418b..0aff48d1 100644
+--- a/nss/bug-erange.c
++++ b/nss/bug-erange.c
+@@ -37,7 +37,7 @@ main (void)
+     {
+       printf ("gethostbyname_r failed: %s (errno: %m)\n", strerror (res));
+ 
+-      if (access ("/etc/resolv.conf", R_OK))
++      if (access ("@TERMUX_PREFIX@/etc/resolv.conf", R_OK))
+ 	{
+ 	  puts ("DNS probably not set up");
+ 	  return 0;
 diff --git a/nss/db-Makefile b/nss/db-Makefile
-index 0dcf764c..d39025b9 100644
+index ab37e62b..1c0c4f75 100644
 --- a/nss/db-Makefile
 +++ b/nss/db-Makefile
 @@ -17,11 +17,11 @@
@@ -309,8 +347,34 @@ index 0dcf764c..d39025b9 100644
  	@printf %s "$(patsubst %.db,%,$(@F))... "
  	@$(AWK) 'BEGIN { ini=1 } \
  		 /^[ \t]*$$/ { next } \
+diff --git a/nss/getaddrinfo.c b/nss/getaddrinfo.c
+index 3ccd3905..c132aa88 100644
+--- a/nss/getaddrinfo.c
++++ b/nss/getaddrinfo.c
+@@ -1726,7 +1726,7 @@ in6aicmp (const void *p1, const void *p2)
+ 
+ 
+ /* Name of the config file for RFC 3484 sorting (for now).  */
+-#define GAICONF_FNAME "/etc/gai.conf"
++#define GAICONF_FNAME "@TERMUX_PREFIX@/etc/gai.conf"
+ 
+ 
+ /* Non-zero if we are supposed to reload the config file automatically
+diff --git a/nss/lckpwdf.c b/nss/lckpwdf.c
+index ce0401a8..58a5dda5 100644
+--- a/nss/lckpwdf.c
++++ b/nss/lckpwdf.c
+@@ -29,7 +29,7 @@
+ 
+ 
+ /* Name of the lock file.  */
+-#define PWD_LOCKFILE "/etc/.pwd.lock"
++#define PWD_LOCKFILE "@TERMUX_PREFIX@/etc/.pwd.lock"
+ 
+ /* How long to wait for getting the lock before returning with an
+    error.  */
 diff --git a/nss/nss_compat/compat-grp.c b/nss/nss_compat/compat-grp.c
-index 92d099eb..78a17631 100644
+index ede7503d..151773ab 100644
 --- a/nss/nss_compat/compat-grp.c
 +++ b/nss/nss_compat/compat-grp.c
 @@ -108,7 +108,7 @@ internal_setgrent (ent_t *ent, int stayopen, int needent)
@@ -323,7 +387,7 @@ index 92d099eb..78a17631 100644
        if (ent->stream == NULL)
  	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
 diff --git a/nss/nss_compat/compat-initgroups.c b/nss/nss_compat/compat-initgroups.c
-index 90bcdb97..b25d416f 100644
+index 2598cfbc..66563c22 100644
 --- a/nss/nss_compat/compat-initgroups.c
 +++ b/nss/nss_compat/compat-initgroups.c
 @@ -122,7 +122,7 @@ internal_setgrent (ent_t *ent)
@@ -336,7 +400,7 @@ index 90bcdb97..b25d416f 100644
    if (ent->stream == NULL)
      status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
 diff --git a/nss/nss_compat/compat-pwd.c b/nss/nss_compat/compat-pwd.c
-index f9ad9400..7c11f9d4 100644
+index 2f37e0f6..978d59f2 100644
 --- a/nss/nss_compat/compat-pwd.c
 +++ b/nss/nss_compat/compat-pwd.c
 @@ -223,7 +223,7 @@ internal_setpwent (ent_t *ent, int stayopen, int needent)
@@ -349,7 +413,7 @@ index f9ad9400..7c11f9d4 100644
        if (ent->stream == NULL)
  	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
 diff --git a/nss/nss_compat/compat-spwd.c b/nss/nss_compat/compat-spwd.c
-index c3ce41b1..28d520b9 100644
+index fac1e766..ea3c1bc3 100644
 --- a/nss/nss_compat/compat-spwd.c
 +++ b/nss/nss_compat/compat-spwd.c
 @@ -178,7 +178,7 @@ internal_setspent (ent_t *ent, int stayopen, int needent)
@@ -362,7 +426,7 @@ index c3ce41b1..28d520b9 100644
        if (ent->stream == NULL)
  	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
 diff --git a/nss/nss_files/files-XXX.c b/nss/nss_files/files-XXX.c
-index 2ed7184c..fb67afb0 100644
+index 558b2c36..3458b312 100644
 --- a/nss/nss_files/files-XXX.c
 +++ b/nss/nss_files/files-XXX.c
 @@ -39,7 +39,7 @@
@@ -375,7 +439,7 @@ index 2ed7184c..fb67afb0 100644
  #ifdef NEED_H_ERRNO
  # include <netdb.h>
 diff --git a/nss/nss_files/files-alias.c b/nss/nss_files/files-alias.c
-index 4601cb6c..a2ab1271 100644
+index 14a59b46..77a4acef 100644
 --- a/nss/nss_files/files-alias.c
 +++ b/nss/nss_files/files-alias.c
 @@ -42,7 +42,7 @@ internal_setent (FILE **stream)
@@ -406,7 +470,7 @@ index 4601cb6c..a2ab1271 100644
      return status;
  
 diff --git a/nss/nss_files/files-init.c b/nss/nss_files/files-init.c
-index d5c2795b..95b8f266 100644
+index 45fb49cb..bb8f0813 100644
 --- a/nss/nss_files/files-init.c
 +++ b/nss/nss_files/files-init.c
 @@ -41,12 +41,12 @@ register_file (void (*cb) (size_t, struct traced_file *),
@@ -429,7 +493,7 @@ index d5c2795b..95b8f266 100644
  libc_hidden_def (_nss_files_init)
  
 diff --git a/nss/nss_files/files-initgroups.c b/nss/nss_files/files-initgroups.c
-index 929039af..4b3eea49 100644
+index 65189d39..77c12334 100644
 --- a/nss/nss_files/files-initgroups.c
 +++ b/nss/nss_files/files-initgroups.c
 @@ -33,7 +33,7 @@ _nss_files_initgroups_dyn (const char *user, gid_t group, long int *start,
@@ -442,7 +506,7 @@ index 929039af..4b3eea49 100644
      {
        *errnop = errno;
 diff --git a/nss/nss_files/files-netgrp.c b/nss/nss_files/files-netgrp.c
-index 28ab40da..09dbc877 100644
+index 92d8062e..c50f7197 100644
 --- a/nss/nss_files/files-netgrp.c
 +++ b/nss/nss_files/files-netgrp.c
 @@ -27,7 +27,7 @@
@@ -455,7 +519,7 @@ index 28ab40da..09dbc877 100644
  libc_hidden_proto (_nss_files_endnetgrent)
  
 diff --git a/posix/annexc.c b/posix/annexc.c
-index ca50ac96..6dc33aad 100644
+index ad3d4654..1f238a6e 100644
 --- a/posix/annexc.c
 +++ b/posix/annexc.c
 @@ -26,7 +26,7 @@
@@ -533,7 +597,7 @@ index 4f67d9b2..11645956 100644
    if (fd == -1)
      {
 diff --git a/posix/bug-regex9.c b/posix/bug-regex9.c
-index d74bc9b9..3d1327f1 100644
+index 84dc81a4..841b2d80 100644
 --- a/posix/bug-regex9.c
 +++ b/posix/bug-regex9.c
 @@ -23,7 +23,7 @@
@@ -546,7 +610,7 @@ index d74bc9b9..3d1327f1 100644
  int
  main (void)
 diff --git a/resolv/netdb.h b/resolv/netdb.h
-index ace9e482..75e9c00c 100644
+index 14228b0d..9e97ed4d 100644
 --- a/resolv/netdb.h
 +++ b/resolv/netdb.h
 @@ -40,12 +40,12 @@
@@ -554,12 +618,13 @@ index ace9e482..75e9c00c 100644
  
  /* Absolute file name for network data base files.  */
 -#define	_PATH_HEQUIV		"/etc/hosts.equiv"
-+#define	_PATH_HEQUIV		"@TERMUX_PREFIX@/etc/hosts.equiv"
- #define	_PATH_HOSTS		"/etc/hosts"
+-#define	_PATH_HOSTS		"/etc/hosts"
 -#define	_PATH_NETWORKS		"/etc/networks"
 -#define	_PATH_NSSWITCH_CONF	"/etc/nsswitch.conf"
 -#define	_PATH_PROTOCOLS		"/etc/protocols"
 -#define	_PATH_SERVICES		"/etc/services"
++#define	_PATH_HEQUIV		"@TERMUX_PREFIX@/etc/hosts.equiv"
++#define	_PATH_HOSTS		"@TERMUX_PREFIX@/etc/hosts"
 +#define	_PATH_NETWORKS		"@TERMUX_PREFIX@/etc/networks"
 +#define	_PATH_NSSWITCH_CONF	"@TERMUX_PREFIX@/etc/nsswitch.conf"
 +#define	_PATH_PROTOCOLS		"@TERMUX_PREFIX@/etc/protocols"
@@ -567,6 +632,19 @@ index ace9e482..75e9c00c 100644
  
  
  __BEGIN_DECLS
+diff --git a/resolv/res_hconf.c b/resolv/res_hconf.c
+index e1158943..6c9624cc 100644
+--- a/resolv/res_hconf.c
++++ b/resolv/res_hconf.c
+@@ -48,7 +48,7 @@
+ # define fgets_unlocked __fgets_unlocked
+ #endif
+ 
+-#define _PATH_HOSTCONF	"/etc/host.conf"
++#define _PATH_HOSTCONF	"@TERMUX_PREFIX@/etc/host.conf"
+ 
+ /* Environment vars that all user to override default behavior:  */
+ #define ENV_HOSTCONF	"RESOLV_HOST_CONF"
 diff --git a/resolv/resolv.h b/resolv/resolv.h
 index f40d6c58..a982e162 100644
 --- a/resolv/resolv.h
@@ -605,7 +683,7 @@ index c9c2ef51..053f7227 100644
  
      int fd1 = mkstemp (filename1);
 diff --git a/stdio-common/scanf14.c b/stdio-common/scanf14.c
-index 09f47d36..6dbd23f4 100644
+index e58214ea..5351faec 100644
 --- a/stdio-common/scanf14.c
 +++ b/stdio-common/scanf14.c
 @@ -82,7 +82,7 @@ main (void)
@@ -618,7 +696,7 @@ index 09f47d36..6dbd23f4 100644
    char fname[strlen (tmpdir) + sizeof "/tst-scanf14.XXXXXX"];
    sprintf (fname, "%s/tst-scanf14.XXXXXX", tmpdir);
 diff --git a/stdio-common/scanf15.c b/stdio-common/scanf15.c
-index acd01e7b..488d624c 100644
+index faef45bf..bf85fb83 100644
 --- a/stdio-common/scanf15.c
 +++ b/stdio-common/scanf15.c
 @@ -65,7 +65,7 @@ main (void)
@@ -631,7 +709,7 @@ index acd01e7b..488d624c 100644
    char fname[strlen (tmpdir) + sizeof "/tst-scanf15.XXXXXX"];
    sprintf (fname, "%s/tst-scanf15.XXXXXX", tmpdir);
 diff --git a/stdio-common/scanf16.c b/stdio-common/scanf16.c
-index 97d1082d..a163a7d3 100644
+index 0dbe214d..19ae4a98 100644
 --- a/stdio-common/scanf16.c
 +++ b/stdio-common/scanf16.c
 @@ -113,7 +113,7 @@ main (void)
@@ -644,7 +722,7 @@ index 97d1082d..a163a7d3 100644
    char fname[strlen (tmpdir) + sizeof "/tst-scanf16.XXXXXX"];
    sprintf (fname, "%s/tst-scanf16.XXXXXX", tmpdir);
 diff --git a/stdio-common/scanf17.c b/stdio-common/scanf17.c
-index 3099689e..439039a6 100644
+index d4392437..703b0e6e 100644
 --- a/stdio-common/scanf17.c
 +++ b/stdio-common/scanf17.c
 @@ -96,7 +96,7 @@ main (void)
@@ -657,7 +735,7 @@ index 3099689e..439039a6 100644
    char fname[strlen (tmpdir) + sizeof "/tst-scanf17.XXXXXX"];
    sprintf (fname, "%s/tst-scanf17.XXXXXX", tmpdir);
 diff --git a/stdio-common/tstscanf.c b/stdio-common/tstscanf.c
-index 7e92df47..7ffbea37 100644
+index 80c3cf83..58a6a82b 100644
 --- a/stdio-common/tstscanf.c
 +++ b/stdio-common/tstscanf.c
 @@ -62,7 +62,7 @@ main (int argc, char **argv)
@@ -692,7 +770,7 @@ index 06f74aff..c80db63e 100644
  
    ReadFile(&buffer, input);
 diff --git a/stdlib/isomac.c b/stdlib/isomac.c
-index a371bb25..6e2b588b 100644
+index 7fcb4f2c..05d04f16 100644
 --- a/stdlib/isomac.c
 +++ b/stdlib/isomac.c
 @@ -74,7 +74,7 @@
@@ -705,10 +783,10 @@ index a371bb25..6e2b588b 100644
  /* ISO C header names including Amendment 1 (without ".h" suffix).  */
  static char *header[] =
 diff --git a/support/support_test_main.c b/support/support_test_main.c
-index c20c19e7..f2b33978 100644
+index cca82d8d..372796be 100644
 --- a/support/support_test_main.c
 +++ b/support/support_test_main.c
-@@ -353,7 +353,7 @@ support_test_main (int argc, char **argv, const struct test_config *config)
+@@ -351,7 +351,7 @@ support_test_main (int argc, char **argv, const struct test_config *config)
      {
        test_dir = getenv ("TMPDIR");
        if (test_dir == NULL || test_dir[0] == '\0')
@@ -791,7 +869,7 @@ index 893b4c22..6c38ca05 100644
  
  #endif /* !_PATHS_H_ */
 diff --git a/sysdeps/posix/system.c b/sysdeps/posix/system.c
-index 488b9516..6287b0ea 100644
+index 01e8bc45..9c420a82 100644
 --- a/sysdeps/posix/system.c
 +++ b/sysdeps/posix/system.c
 @@ -31,7 +31,7 @@
@@ -804,7 +882,7 @@ index 488b9516..6287b0ea 100644
  
  
 diff --git a/sysdeps/posix/tempname.c b/sysdeps/posix/tempname.c
-index f24d9622..b744a541 100644
+index 2af22386..21424f01 100644
 --- a/sysdeps/posix/tempname.c
 +++ b/sysdeps/posix/tempname.c
 @@ -28,7 +28,7 @@
@@ -835,7 +913,7 @@ index 15859c3b..3bc390f5 100644
 -#define	CS_PATH	"/bin:/usr/bin"
 +#define	CS_PATH	"@TERMUX_PREFIX@/bin:@TERMUX_PREFIX_CLASSICAL@/bin:/system/bin"
 diff --git a/sysdeps/unix/sysv/linux/gentempfd.c b/sysdeps/unix/sysv/linux/gentempfd.c
-index 86b0a914..b3054e55 100644
+index 963e9d72..ea3c2e80 100644
 --- a/sysdeps/unix/sysv/linux/gentempfd.c
 +++ b/sysdeps/unix/sysv/linux/gentempfd.c
 @@ -26,8 +26,8 @@ __gen_tempfd (int flags)
@@ -922,7 +1000,7 @@ index 1342ab3a..357120b4 100644
  
  #endif /* !_PATHS_H_ */
 diff --git a/sysdeps/unix/sysv/linux/riscv/dl-cache.h b/sysdeps/unix/sysv/linux/riscv/dl-cache.h
-index 2f82ed4e..29aa8ff8 100644
+index 4b6e50fa..9fc91fae 100644
 --- a/sysdeps/unix/sysv/linux/riscv/dl-cache.h
 +++ b/sysdeps/unix/sysv/linux/riscv/dl-cache.h
 @@ -58,7 +58,7 @@

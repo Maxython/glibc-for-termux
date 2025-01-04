@@ -1,6 +1,17 @@
---- glibc-2.39/sysdeps/unix/sysv/linux/clock_gettime.c	2022-07-30 01:03:09.000000000 +0300
-+++ glibc-2.39/sysdeps/unix/sysv/linux/clock_gettime.c.patch	2022-10-18 22:31:17.784495202 +0300
-@@ -65,12 +65,6 @@
+--- glibc-2.39/sysdeps/unix/sysv/linux/clock_gettime.c	2024-01-31 03:34:58.000000000 +0300
++++ glibc-2.39/sysdeps/unix/sysv/linux/clock_gettime.c.patch	2024-12-29 23:33:28.406119388 +0300
+@@ -30,10 +30,6 @@
+ {
+   int r;
+ 
+-#ifndef __NR_clock_gettime64
+-# define __NR_clock_gettime64 __NR_clock_gettime
+-#endif
+-
+ #ifdef HAVE_CLOCK_GETTIME64_VSYSCALL
+   int (*vdso_time64) (clockid_t clock_id, struct __timespec64 *tp)
+     = GLRO(dl_vdso_clock_gettime64);
+@@ -65,13 +61,6 @@
      }
  #endif
  
@@ -10,6 +21,15 @@
 -  if (r != -ENOSYS)
 -    return INLINE_SYSCALL_ERROR_RETURN_VALUE (-r);
 -
- #ifndef __ASSUME_TIME64_SYSCALLS
+-#ifndef __ASSUME_TIME64_SYSCALLS
    /* Fallback code that uses 32-bit support.  */
    struct timespec tp32;
+   r = INTERNAL_SYSCALL_CALL (clock_gettime, clock_id, &tp32);
+@@ -80,7 +69,6 @@
+       *tp = valid_timespec_to_timespec64 (tp32);
+       return 0;
+     }
+-#endif
+ 
+   return INLINE_SYSCALL_ERROR_RETURN_VALUE (-r);
+ }

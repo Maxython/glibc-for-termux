@@ -3,14 +3,10 @@
    structures are created.
 */
 
-#ifndef _ANDROID_PASSWD_GROUP
-#define _ANDROID_PASSWD_GROUP
-
 #include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include "android_ids.h"
 #include "android_passwd_group.h"
 
 struct android_id_info * find_android_id_info_by_id(unsigned id) {
@@ -67,7 +63,7 @@ int is_valid_id_android(id_t id, int is_group) {
 	return 0;
 }
 
-static id_t oem_id_from_name_android(const char* name) {
+id_t oem_id_from_name_android(const char* name) {
 	unsigned int id;
 	if (sscanf(name, "oem_%u", &id) != 1) {
 		return 0;
@@ -78,7 +74,7 @@ static id_t oem_id_from_name_android(const char* name) {
 	return (id_t)id;
 }
 
-static id_t app_id_from_name_android(const char* name, int is_group) {
+id_t app_id_from_name_android(const char* name, int is_group) {
 	char* end;
 	unsigned long userid;
 	struct android_id_info* info;
@@ -87,7 +83,7 @@ static id_t app_id_from_name_android(const char* name, int is_group) {
 	if (is_group && name[0] == 'a' && name[1] == 'l' && name[2] == 'l') {
 		end = malloc(strlen(name));
 		for (int i=3; i<strlen(name); i++)
-			sprintf(end, "%s%c", end, name[i]);
+			strncat(end, &name[i], 1);
 		userid = 0;
 		is_shared_gid = 1;
 	} else if (name[0] == 'u' && isdigit(name[1])) {
@@ -186,27 +182,27 @@ void get_name_by_gid_android(gid_t gid, char *name_g) {
 	}
 }
 
-struct passwd * get_passwd_android(char* name, uid_t uid) {
+struct passwd * get_passwd_android(const char* name, uid_t uid) {
 	static struct passwd res;
 
-	res.pw_name = name;
-	res.pw_passwd = "*";
+	res.pw_name = (char *)name;
+	res.pw_passwd = (char *)"*";
 	res.pw_uid = uid;
 	res.pw_gid = uid;
-	res.pw_gecos = "";
-	res.pw_dir = APP_HOME_DIR;
-	res.pw_shell = APP_PREFIX_DIR "/bin/login";
+	res.pw_gecos = (char *)"";
+	res.pw_dir = (char *)APP_HOME_DIR;
+	res.pw_shell = (char *)(APP_PREFIX_DIR "/bin/login");
 
 	return &res;
 }
 
-struct group * get_group_android(char* name, gid_t gid) {
+struct group * get_group_android(const char* name, gid_t gid) {
 	static struct group res;
 
-	res.gr_name = name;
+	res.gr_name = (char *)name;
 	res.gr_passwd = NULL;
 	res.gr_gid = gid;
-	res.gr_mem = (char *[2]){(char *)name, NULL};
+	res.gr_mem = *(char **[2]){(char **)name, NULL};
 
 	return &res;
 }
@@ -243,7 +239,7 @@ struct group * getgrgid_android(gid_t gid) {
 	return get_group_android(name_res, gid);
 }
 
-struct passwd * getpwnam_android(char* name) {
+struct passwd * getpwnam_android(const char* name) {
 	uid_t uid;
 	struct android_id_info* info;
 
@@ -262,7 +258,7 @@ struct passwd * getpwnam_android(char* name) {
 	return NULL;
 }
 
-struct group * getgrnam_android(char* name) {
+struct group * getgrnam_android(const char* name) {
 	gid_t gid;
 	struct android_id_info* info;
 
@@ -280,5 +276,3 @@ struct group * getgrnam_android(char* name) {
 
 	return NULL;
 }
-
-#endif // _ANDROID_PASSWD_GROUP

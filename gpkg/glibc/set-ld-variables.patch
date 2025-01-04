@@ -1,0 +1,124 @@
+diff --git a/elf/dl-environ.c b/elf/dl-environ.c
+index cb759a44..998c5a57 100644
+--- a/elf/dl-environ.c
++++ b/elf/dl-environ.c
+@@ -21,6 +21,22 @@
+ #include <unistd.h>
+ #include <ldsodefs.h>
+ 
++#define HAVE_LD_SUFFIX \
++  __builtin_expect ((*current)[0] == 'L', 0) && \
++  (*current)[1] == 'D' && \
++  (*current)[2] == '_'
++
++#define HAVE_GLIBC_SUFFIX \
++  __builtin_expect ((*current)[0] == 'G', 0) && \
++  (*current)[1] == 'L' && \
++  (*current)[2] == 'I' && \
++  (*current)[3] == 'B' && \
++  (*current)[4] == 'C' && \
++  (*current)[5] == '_' && \
++  (*current)[6] == 'L' && \
++  (*current)[7] == 'D' && \
++  (*current)[8] == '_'
++
+ /* Walk through the environment of the process and return all entries
+    starting with `LD_'.  */
+ char *
+@@ -31,16 +47,15 @@ _dl_next_ld_env_entry (char ***position)
+ 
+   while (*current != NULL)
+     {
+-      if (__builtin_expect ((*current)[0] == 'L', 0)
+-	  && (*current)[1] == 'D' && (*current)[2] == '_')
+-	{
+-	  result = &(*current)[3];
+-
+-	  /* Save current position for next visit.  */
+-	  *position = ++current;
+-
+-	  break;
+-	}
++      if (HAVE_LD_SUFFIX) {
++	result = &(*current)[3];
++        *position = ++current;
++        break;
++      } else if (HAVE_GLIBC_SUFFIX) {
++        result = &(*current)[9];
++        *position = ++current;
++        break;
++      }
+ 
+       ++current;
+     }
+diff --git a/elf/dl-support.c b/elf/dl-support.c
+index 2f502c8b..e1614c76 100644
+--- a/elf/dl-support.c
++++ b/elf/dl-support.c
+@@ -293,11 +293,11 @@ _dl_non_dynamic_init (void)
+ 	}
+     }
+ 
+-  _dl_verbose = *(getenv ("LD_WARN") ?: "") == '\0' ? 0 : 1;
++  _dl_verbose = *(getenv ("GLIBC_LD_WARN") ?: getenv ("LD_WARN") ?: "") == '\0' ? 0 : 1;
+ 
+   /* Initialize the data structures for the search paths for shared
+      objects.  */
+-  _dl_init_paths (getenv ("LD_LIBRARY_PATH"), "LD_LIBRARY_PATH",
++  _dl_init_paths (getenv ("GLIBC_LD_LIBRARY_PATH") ?: getenv ("LD_LIBRARY_PATH"), "LD_LIBRARY_PATH",
+ 		  /* No glibc-hwcaps selection support in statically
+ 		     linked binaries.  */
+ 		  NULL, NULL);
+@@ -305,11 +305,11 @@ _dl_non_dynamic_init (void)
+   /* Remember the last search directory added at startup.  */
+   _dl_init_all_dirs = GL(dl_all_dirs);
+ 
+-  _dl_lazy = *(getenv ("LD_BIND_NOW") ?: "") == '\0';
++  _dl_lazy = *(getenv ("GLIBC_LD_BIND_NOW") ?: getenv ("LD_BIND_NOW") ?: "") == '\0';
+ 
+-  _dl_bind_not = *(getenv ("LD_BIND_NOT") ?: "") != '\0';
++  _dl_bind_not = *(getenv ("GLIBC_LD_BIND_NOT") ?: getenv ("LD_BIND_NOT") ?: "") != '\0';
+ 
+-  _dl_dynamic_weak = *(getenv ("LD_DYNAMIC_WEAK") ?: "") == '\0';
++  _dl_dynamic_weak = *(getenv ("GLIBC_LD_DYNAMIC_WEAK") ?: getenv ("LD_DYNAMIC_WEAK") ?: "") == '\0';
+ 
+ #ifdef DL_PLATFORM_INIT
+   DL_PLATFORM_INIT;
+diff --git a/elf/dl-usage.c b/elf/dl-usage.c
+index 5baac4ba..77ac93d4 100644
+--- a/elf/dl-usage.c
++++ b/elf/dl-usage.c
+@@ -187,7 +187,7 @@ setting environment variables (which would be inherited by subprocesses).\n\
+                         object we can handle\n\
+   --inhibit-cache       Do not use " LD_SO_CACHE "\n\
+   --library-path PATH   use given PATH instead of content of the environment\n\
+-                        variable LD_LIBRARY_PATH\n\
++                        variable LD_LIBRARY_PATH or GLIBC_LD_LIBRARY_PATH\n\
+   --glibc-hwcaps-prepend LIST\n\
+                         search glibc-hwcaps subdirectories in LIST\n\
+   --glibc-hwcaps-mask LIST\n\
+diff --git a/sysdeps/generic/unsecvars.h b/sysdeps/generic/unsecvars.h
+index f1724efe..8f0fa1a9 100644
+--- a/sysdeps/generic/unsecvars.h
++++ b/sysdeps/generic/unsecvars.h
+@@ -20,6 +20,20 @@
+   "LD_SHOW_AUXV\0"							      \
+   "LD_VERBOSE\0"							      \
+   "LD_WARN\0"								      \
++  "GLIBC_LD_AUDIT\0"							      \
++  "GLIBC_LD_BIND_NOT\0"							      \
++  "GLIBC_LD_BIND_NOW\0"							      \
++  "GLIBC_LD_DEBUG\0"							      \
++  "GLIBC_LD_DEBUG_OUTPUT\0"						      \
++  "GLIBC_LD_DYNAMIC_WEAK\0"						      \
++  "GLIBC_LD_HWCAP_MASK\0"						      \
++  "GLIBC_LD_LIBRARY_PATH\0"						      \
++  "GLIBC_LD_ORIGIN_PATH\0"						      \
++  "GLIBC_LD_PRELOAD\0"							      \
++  "GLIBC_LD_PROFILE\0"							      \
++  "GLIBC_LD_SHOW_AUXV\0"						      \
++  "GLIBC_LD_VERBOSE\0"							      \
++  "GLIBC_LD_WARN\0"							      \
+   "LOCALDOMAIN\0"							      \
+   "LOCPATH\0"								      \
+   "MALLOC_ARENA_MAX\0"							      \

@@ -1,0 +1,19 @@
+--- glibc-2.39/sysvipc/Makefile	2024-01-31 03:34:58.000000000 +0300
++++ glibc-2.39/sysvipc/Makefile.patch	2024-12-15 19:21:41.049560753 +0300
+@@ -23,12 +23,14 @@
+ include ../Makeconfig
+ 
+ headers	:= sys/ipc.h sys/msg.h sys/sem.h sys/shm.h \
+-	   bits/ipctypes.h bits/ipc.h bits/msq.h bits/sem.h bits/shm.h
++	   bits/ipctypes.h bits/ipc.h bits/msq.h bits/sem.h bits/shm.h \
++	   shmem-android.h
+ 
+ routines := ftok \
+ 	    msgsnd msgrcv msgget msgctl \
+ 	    semop semget semctl semtimedop \
+-	    shmat shmdt shmget shmctl
++	    shmat shmdt shmget shmctl \
++	    shmem-android
+ 
+ tests    := test-sysvmsg test-sysvsem test-sysvshm
+ 

@@ -1,0 +1,489 @@
+diff --git a/sysdeps/unix/sysv/linux/epoll_pwait2.c b/sysdeps/unix/sysv/linux/epoll_pwait2.c
+index 0f6ac3e1..9b111ad2 100644
+--- a/sysdeps/unix/sysv/linux/epoll_pwait2.c
++++ b/sysdeps/unix/sysv/linux/epoll_pwait2.c
+@@ -18,13 +18,14 @@
+ 
+ #include <sys/epoll.h>
+ #include <sysdep.h>
++#include <fakesyscall.h>
+ 
+ int
+ __epoll_pwait2_time64 (int fd, struct epoll_event *ev, int maxev,
+ 		       const struct __timespec64 *tmo, const sigset_t *s)
+ {
+   /* The syscall only supports 64-bit time_t.  */
+-  return SYSCALL_CANCEL (epoll_pwait2, fd, ev, maxev, tmo, s, __NSIG_BYTES);
++  return syscall (__NR_epoll_pwait2, fd, ev, maxev, tmo, s, __NSIG_BYTES);
+ }
+ #if __TIMESIZE != 64
+ libc_hidden_def (__epoll_pwait2_time64)
+diff --git a/sysdeps/unix/sysv/linux/local-setxid.h b/sysdeps/unix/sysv/linux/local-setxid.h
+index 97d787d9..c975fa86 100644
+--- a/sysdeps/unix/sysv/linux/local-setxid.h
++++ b/sysdeps/unix/sysv/linux/local-setxid.h
+@@ -1,16 +1,17 @@
+ /* SETxID functions which only have to change the local thread and
+    none of the possible other threads.  */
+ #include <sysdep.h>
++#include <fakesyscall.h>
+ 
+ #ifdef __NR_setresuid32
+-# define local_seteuid(id) INLINE_SYSCALL (setresuid32, 3, -1, id, -1)
++# define local_seteuid(id) syscall (__NR_setresuid32, 3, -1, id, -1)
+ #else
+-# define local_seteuid(id) INLINE_SYSCALL (setresuid, 3, -1, id, -1)
++# define local_seteuid(id) syscall (__NR_setresuid, 3, -1, id, -1)
+ #endif
+ 
+ 
+ #ifdef __NR_setresgid32
+-# define local_setegid(id) INLINE_SYSCALL (setresgid32, 3, -1, id, -1)
++# define local_setegid(id) syscall (__NR_setresgid32, 3, -1, id, -1)
+ #else
+-# define local_setegid(id) INLINE_SYSCALL (setresgid, 3, -1, id, -1)
++# define local_setegid(id) syscall (__NR_setresgid, 3, -1, id, -1)
+ #endif
+diff --git a/sysdeps/unix/sysv/linux/mq_open.c b/sysdeps/unix/sysv/linux/mq_open.c
+index 936001b8..eb381a01 100644
+--- a/sysdeps/unix/sysv/linux/mq_open.c
++++ b/sysdeps/unix/sysv/linux/mq_open.c
+@@ -22,6 +22,7 @@
+ #include <stdio.h>
+ #include <sysdep.h>
+ #include <shlib-compat.h>
++#include <fakesyscall.h>
+ 
+ /* Establish connection between a process and a message queue NAME and
+    return message queue descriptor or (mqd_t) -1 on error.  OFLAG determines
+@@ -48,7 +49,7 @@ __mq_open (const char *name, int oflag, ...)
+       va_end (ap);
+     }
+ 
+-  return INLINE_SYSCALL (mq_open, 4, name + 1, oflag, mode, attr);
++  return syscall (__NR_mq_open, 4, name + 1, oflag, mode, attr);
+ }
+ versioned_symbol (libc, __mq_open, mq_open, GLIBC_2_34);
+ #if OTHER_SHLIB_COMPAT (librt, GLIBC_2_3_4, GLIBC_2_34)
+diff --git a/sysdeps/unix/sysv/linux/msgctl.c b/sysdeps/unix/sysv/linux/msgctl.c
+index 3120cae0..dd306cd1 100644
+--- a/sysdeps/unix/sysv/linux/msgctl.c
++++ b/sysdeps/unix/sysv/linux/msgctl.c
+@@ -21,6 +21,7 @@
+ #include <shlib-compat.h>
+ #include <errno.h>
+ #include <linux/posix_types.h>  /* For __kernel_mode_t.  */
++#include <fakesyscall.h>
+ 
+ /* POSIX states ipc_perm mode should have type of mode_t.  */
+ _Static_assert (sizeof ((struct msqid_ds){0}.msg_perm.mode)
+@@ -75,7 +76,7 @@ static int
+ msgctl_syscall (int msqid, int cmd, msgctl_arg_t *buf)
+ {
+ #ifdef __ASSUME_DIRECT_SYSVIPC_SYSCALLS
+-  return INLINE_SYSCALL_CALL (msgctl, msqid, cmd | __IPC_64, buf);
++  return syscall (__NR_msgctl, msqid, cmd | __IPC_64, buf);
+ #else
+   return INLINE_SYSCALL_CALL (ipc, IPCOP_msgctl, msqid, cmd | __IPC_64, 0,
+ 			      buf);
+@@ -282,7 +283,7 @@ __old_msgctl (int msqid, int cmd, struct __old_msqid_ds *buf)
+   /* For architecture that have wire-up msgctl but also have __IPC_64 to a
+      value different than default (0x0) it means the compat symbol used the
+      __NR_ipc syscall.  */
+-  return INLINE_SYSCALL_CALL (msgctl, msqid, cmd, buf);
++  return syscall (__NR_msgctl, msqid, cmd, buf);
+ #else
+   return INLINE_SYSCALL_CALL (ipc, IPCOP_msgctl, msqid, cmd, 0, buf);
+ #endif
+diff --git a/sysdeps/unix/sysv/linux/msgget.c b/sysdeps/unix/sysv/linux/msgget.c
+index 71eea731..58dde6ed 100644
+--- a/sysdeps/unix/sysv/linux/msgget.c
++++ b/sysdeps/unix/sysv/linux/msgget.c
+@@ -18,6 +18,7 @@
+ #include <ipc_priv.h>
+ #include <sysdep.h>
+ #include <errno.h>
++#include <fakesyscall.h>
+ 
+ /* Return descriptor for message queue associated with KEY.  The MSGFLG
+    parameter describes how to proceed with clashing of key values.  */
+@@ -26,7 +27,7 @@ int
+ msgget (key_t key, int msgflg)
+ {
+ #ifdef __ASSUME_DIRECT_SYSVIPC_SYSCALLS
+-  return INLINE_SYSCALL_CALL (msgget, key, msgflg);
++  return syscall (__NR_msgget, key, msgflg);
+ #else
+   return INLINE_SYSCALL_CALL (ipc, IPCOP_msgget, key, msgflg, 0, NULL);
+ #endif
+diff --git a/sysdeps/unix/sysv/linux/msgrcv.c b/sysdeps/unix/sysv/linux/msgrcv.c
+index 30519008..2201fe68 100644
+--- a/sysdeps/unix/sysv/linux/msgrcv.c
++++ b/sysdeps/unix/sysv/linux/msgrcv.c
+@@ -17,13 +17,14 @@
+ 
+ #include <ipc_priv.h>
+ #include <sysdep-cancel.h>
++#include <fakesyscall.h>
+ 
+ ssize_t
+ __libc_msgrcv (int msqid, void *msgp, size_t msgsz, long int msgtyp,
+ 	       int msgflg)
+ {
+ #ifdef __ASSUME_DIRECT_SYSVIPC_SYSCALLS
+-  return SYSCALL_CANCEL (msgrcv, msqid, msgp, msgsz, msgtyp, msgflg);
++  return syscall (__NR_msgrcv, msqid, msgp, msgsz, msgtyp, msgflg);
+ #else
+   return SYSCALL_CANCEL (ipc, IPCOP_msgrcv, msqid, msgsz, msgflg,
+ 			 MSGRCV_ARGS (msgp, msgtyp));
+diff --git a/sysdeps/unix/sysv/linux/msgsnd.c b/sysdeps/unix/sysv/linux/msgsnd.c
+index 8af400c3..887b32da 100644
+--- a/sysdeps/unix/sysv/linux/msgsnd.c
++++ b/sysdeps/unix/sysv/linux/msgsnd.c
+@@ -17,12 +17,13 @@
+ 
+ #include <ipc_priv.h>
+ #include <sysdep-cancel.h>
++#include <fakesyscall.h>
+ 
+ int
+ __libc_msgsnd (int msqid, const void *msgp, size_t msgsz, int msgflg)
+ {
+ #ifdef __ASSUME_DIRECT_SYSVIPC_SYSCALLS
+-  return SYSCALL_CANCEL (msgsnd, msqid, msgp, msgsz, msgflg);
++  return syscall (__NR_msgsnd, msqid, msgp, msgsz, msgflg);
+ #else
+   return SYSCALL_CANCEL (ipc, IPCOP_msgsnd, msqid, msgsz, msgflg,
+ 			 msgp);
+diff --git a/sysdeps/unix/sysv/linux/open_by_handle_at.c b/sysdeps/unix/sysv/linux/open_by_handle_at.c
+index 730059d7..23ec12ad 100644
+--- a/sysdeps/unix/sysv/linux/open_by_handle_at.c
++++ b/sysdeps/unix/sysv/linux/open_by_handle_at.c
+@@ -20,9 +20,10 @@
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <sysdep-cancel.h>
++#include <fakesyscall.h>
+ 
+ int
+ open_by_handle_at (int mount_fd, struct file_handle *handle, int flags)
+ {
+-  return SYSCALL_CANCEL (open_by_handle_at, mount_fd, handle, flags);
++  return syscall (__NR_open_by_handle_at, mount_fd, handle, flags);
+ }
+diff --git a/sysdeps/unix/sysv/linux/semctl.c b/sysdeps/unix/sysv/linux/semctl.c
+index c57fceab..0da2d1d7 100644
+--- a/sysdeps/unix/sysv/linux/semctl.c
++++ b/sysdeps/unix/sysv/linux/semctl.c
+@@ -21,6 +21,7 @@
+ #include <sysdep.h>
+ #include <shlib-compat.h>
+ #include <linux/posix_types.h>             /* For __kernel_mode_t.  */
++#include <fakesyscall.h>
+ 
+ /* The struct used to issue the syscall.  For architectures that assume
+    64-bit time as default (!__ASSUME_TIME64_SYSCALLS) the syscall will
+@@ -121,7 +122,7 @@ static int
+ semctl_syscall (int semid, int semnum, int cmd, semctl_arg_t arg)
+ {
+ #ifdef __ASSUME_DIRECT_SYSVIPC_SYSCALLS
+-  return INLINE_SYSCALL_CALL (semctl, semid, semnum, cmd | __IPC_64,
++  return syscall (__NR_semctl, semid, semnum, cmd | __IPC_64,
+ 			      arg.array);
+ #else
+   return INLINE_SYSCALL_CALL (ipc, IPCOP_semctl, semid, semnum, cmd | __IPC_64,
+@@ -388,7 +389,7 @@ __old_semctl (int semid, int semnum, int cmd, ...)
+  /* For architectures that have wire-up semctl but also have __IPC_64 to a
+     value different than default (0x0) it means the compat symbol used the
+     __NR_ipc syscall.  */
+-  return INLINE_SYSCALL_CALL (semctl, semid, semnum, cmd, arg.array);
++  return syscall (__NR_semctl, semid, semnum, cmd, arg.array);
+ # else
+   return INLINE_SYSCALL_CALL (ipc, IPCOP_semctl, semid, semnum, cmd,
+ 			      SEMCTL_ARG_ADDRESS (arg));
+diff --git a/sysdeps/unix/sysv/linux/semget.c b/sysdeps/unix/sysv/linux/semget.c
+index 26d00467..9675de7a 100644
+--- a/sysdeps/unix/sysv/linux/semget.c
++++ b/sysdeps/unix/sysv/linux/semget.c
+@@ -19,6 +19,7 @@
+ #include <ipc_priv.h>
+ #include <sysdep.h>
+ #include <errno.h>
++#include <fakesyscall.h>
+ 
+ /* Return identifier for array of NSEMS semaphores associated with
+    KEY.  */
+@@ -27,7 +28,7 @@ int
+ semget (key_t key, int nsems, int semflg)
+ {
+ #ifdef __ASSUME_DIRECT_SYSVIPC_SYSCALLS
+-  return INLINE_SYSCALL_CALL (semget, key, nsems, semflg);
++  return syscall (__NR_semget, key, nsems, semflg);
+ #else
+   return INLINE_SYSCALL_CALL (ipc, IPCOP_semget, key, nsems, semflg, NULL);
+ #endif
+diff --git a/sysdeps/unix/sysv/linux/semtimedop.c b/sysdeps/unix/sysv/linux/semtimedop.c
+index 181289fa..e503f813 100644
+--- a/sysdeps/unix/sysv/linux/semtimedop.c
++++ b/sysdeps/unix/sysv/linux/semtimedop.c
+@@ -19,15 +19,16 @@
+ #include <ipc_priv.h>
+ #include <sysdep.h>
+ #include <errno.h>
++#include <fakesyscall.h>
+ 
+ static int
+ semtimedop_syscall (int semid, struct sembuf *sops, size_t nsops,
+ 		    const struct __timespec64 *timeout)
+ {
+ #ifdef __NR_semtimedop_time64
+-  return INLINE_SYSCALL_CALL (semtimedop_time64, semid, sops, nsops, timeout);
++  return syscall (__NR_semtimedop_time64, semid, sops, nsops, timeout);
+ #elif defined __ASSUME_DIRECT_SYSVIPC_SYSCALLS && defined __NR_semtimedop
+-  return INLINE_SYSCALL_CALL (semtimedop, semid, sops, nsops, timeout);
++  return syscall (__NR_semtimedop, semid, sops, nsops, timeout);
+ #else
+   return INLINE_SYSCALL_CALL (ipc, IPCOP_semtimedop, semid,
+ 			      SEMTIMEDOP_IPC_ARGS (nsops, sops, timeout));
+@@ -59,7 +60,7 @@ __semtimedop64 (int semid, struct sembuf *sops, size_t nsops,
+       pts32 = &ts32;
+     }
+ # ifdef __ASSUME_DIRECT_SYSVIPC_SYSCALLS
+-  return INLINE_SYSCALL_CALL (semtimedop, semid, sops, nsops, pts32);
++  return syscall (__NR_semtimedop, semid, sops, nsops, pts32);
+ # else
+   return INLINE_SYSCALL_CALL (ipc, IPCOP_semtimedop, semid,
+ 			      SEMTIMEDOP_IPC_ARGS (nsops, sops, pts32));
+diff --git a/sysdeps/unix/sysv/linux/setegid.c b/sysdeps/unix/sysv/linux/setegid.c
+index 4a608532..e4ff2bc3 100644
+--- a/sysdeps/unix/sysv/linux/setegid.c
++++ b/sysdeps/unix/sysv/linux/setegid.c
+@@ -18,6 +18,7 @@
+ #include <errno.h>
+ #include <unistd.h>
+ #include <setxid.h>
++#include <fakesyscall.h>
+ 
+ 
+ int
+@@ -29,9 +30,9 @@ setegid (gid_t gid)
+     return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
+ 
+ #ifdef __NR_setresgid32
+-  result = INLINE_SETXID_SYSCALL (setresgid32, 3, -1, gid, -1);
++  result = syscall (__NR_setresgid32, 3, -1, gid, -1);
+ #else
+-  result = INLINE_SETXID_SYSCALL (setresgid, 3, -1, gid, -1);
++  result = syscall (__NR_setresgid, 3, -1, gid, -1);
+ #endif
+ 
+   return result;
+diff --git a/sysdeps/unix/sysv/linux/seteuid.c b/sysdeps/unix/sysv/linux/seteuid.c
+index 64d3c84f..75e7497c 100644
+--- a/sysdeps/unix/sysv/linux/seteuid.c
++++ b/sysdeps/unix/sysv/linux/seteuid.c
+@@ -18,6 +18,7 @@
+ #include <errno.h>
+ #include <unistd.h>
+ #include <setxid.h>
++#include <fakesyscall.h>
+ 
+ 
+ int
+@@ -29,9 +30,9 @@ seteuid (uid_t uid)
+     return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
+ 
+ #ifdef __NR_setresuid32
+-  result = INLINE_SETXID_SYSCALL (setresuid32, 3, -1, uid, -1);
++  result = syscall (__NR_setresuid32, 3, -1, uid, -1);
+ #else
+-  result = INLINE_SETXID_SYSCALL (setresuid, 3, -1, uid, -1);
++  result = syscall (__NR_setresuid, 3, -1, uid, -1);
+ #endif
+ 
+   return result;
+diff --git a/sysdeps/unix/sysv/linux/setgid.c b/sysdeps/unix/sysv/linux/setgid.c
+index 51d4df8a..8b065c03 100644
+--- a/sysdeps/unix/sysv/linux/setgid.c
++++ b/sysdeps/unix/sysv/linux/setgid.c
+@@ -18,15 +18,16 @@
+ #include <errno.h>
+ #include <unistd.h>
+ #include <setxid.h>
++#include <fakesyscall.h>
+ 
+ 
+ int
+ __setgid (gid_t gid)
+ {
+ #ifdef __NR_setgid32
+-  return INLINE_SETXID_SYSCALL (setgid32, 1, gid);
++  return syscall (__NR_setgid32, 1, gid);
+ #else
+-  return INLINE_SETXID_SYSCALL (setgid, 1, gid);
++  return syscall (__NR_setgid, 1, gid);
+ #endif
+ }
+ #ifndef __setgid
+diff --git a/sysdeps/unix/sysv/linux/setregid.c b/sysdeps/unix/sysv/linux/setregid.c
+index 2e89677a..4c3ea415 100644
+--- a/sysdeps/unix/sysv/linux/setregid.c
++++ b/sysdeps/unix/sysv/linux/setregid.c
+@@ -18,15 +18,16 @@
+ #include <errno.h>
+ #include <unistd.h>
+ #include <setxid.h>
++#include <fakesyscall.h>
+ 
+ 
+ int
+ __setregid (gid_t rgid, gid_t egid)
+ {
+ #ifdef __NR_setregid32
+-  return INLINE_SETXID_SYSCALL (setregid32, 2, rgid, egid);
++  return syscall (__NR_setregid32, 2, rgid, egid);
+ #else
+-  return INLINE_SETXID_SYSCALL (setregid, 2, rgid, egid);
++  return syscall (__NR_setregid, 2, rgid, egid);
+ #endif
+ }
+ #ifndef __setregid
+diff --git a/sysdeps/unix/sysv/linux/setresgid.c b/sysdeps/unix/sysv/linux/setresgid.c
+index 6b44503c..7b1a9f39 100644
+--- a/sysdeps/unix/sysv/linux/setresgid.c
++++ b/sysdeps/unix/sysv/linux/setresgid.c
+@@ -18,15 +18,16 @@
+ #include <errno.h>
+ #include <unistd.h>
+ #include <setxid.h>
++#include <fakesyscall.h>
+ 
+ 
+ int
+ __setresgid (gid_t rgid, gid_t egid, gid_t sgid)
+ {
+ #ifdef __NR_setresgid32
+-  return INLINE_SETXID_SYSCALL (setresgid32, 3, rgid, egid, sgid);
++  return syscall (__NR_setresgid32, 3, rgid, egid, sgid);
+ #else
+-  return INLINE_SETXID_SYSCALL (setresgid, 3, rgid, egid, sgid);
++  return syscall (__NR_setresgid, 3, rgid, egid, sgid);
+ #endif
+ }
+ libc_hidden_def (__setresgid)
+diff --git a/sysdeps/unix/sysv/linux/setresuid.c b/sysdeps/unix/sysv/linux/setresuid.c
+index 3339779a..f104b2a2 100644
+--- a/sysdeps/unix/sysv/linux/setresuid.c
++++ b/sysdeps/unix/sysv/linux/setresuid.c
+@@ -18,15 +18,16 @@
+ #include <errno.h>
+ #include <unistd.h>
+ #include <setxid.h>
++#include <fakesyscall.h>
+ 
+ 
+ int
+ __setresuid (uid_t ruid, uid_t euid, uid_t suid)
+ {
+ #ifdef __NR_setresuid32
+-  return INLINE_SETXID_SYSCALL (setresuid32, 3, ruid, euid, suid);
++  return syscall (__NR_setresuid32, 3, ruid, euid, suid);
+ #else
+-  return INLINE_SETXID_SYSCALL (setresuid, 3, ruid, euid, suid);
++  return syscall (__NR_setresuid, 3, ruid, euid, suid);
+ #endif
+ }
+ libc_hidden_def (__setresuid)
+diff --git a/sysdeps/unix/sysv/linux/setreuid.c b/sysdeps/unix/sysv/linux/setreuid.c
+index a3889b3f..8728cd10 100644
+--- a/sysdeps/unix/sysv/linux/setreuid.c
++++ b/sysdeps/unix/sysv/linux/setreuid.c
+@@ -18,15 +18,16 @@
+ #include <errno.h>
+ #include <unistd.h>
+ #include <setxid.h>
++#include <fakesyscall.h>
+ 
+ 
+ int
+ __setreuid (uid_t ruid, uid_t euid)
+ {
+ #ifdef __NR_setreuid32
+-  return INLINE_SETXID_SYSCALL (setreuid32, 2, ruid, euid);
++  return syscall (__NR_setreuid32, 2, ruid, euid);
+ #else
+-  return INLINE_SETXID_SYSCALL (setreuid, 2, ruid, euid);
++  return syscall (__NR_setreuid, 2, ruid, euid);
+ #endif
+ }
+ #ifndef __setreuid
+diff --git a/sysdeps/unix/sysv/linux/setuid.c b/sysdeps/unix/sysv/linux/setuid.c
+index 39d5e0cf..3e1e0bcb 100644
+--- a/sysdeps/unix/sysv/linux/setuid.c
++++ b/sysdeps/unix/sysv/linux/setuid.c
+@@ -18,14 +18,15 @@
+ #include <errno.h>
+ #include <unistd.h>
+ #include <setxid.h>
++#include <fakesyscall.h>
+ 
+ int
+ __setuid (uid_t uid)
+ {
+ #ifdef __NR_setuid32
+-  return INLINE_SETXID_SYSCALL (setuid32, 1, uid);
++  return syscall (__NR_setuid32, 1, uid);
+ #else
+-  return INLINE_SETXID_SYSCALL (setuid, 1, uid);
++  return syscall (__NR_setuid, 1, uid);
+ #endif
+ }
+ #ifndef __setuid
+diff --git a/sysdeps/unix/sysv/linux/spawni.c b/sysdeps/unix/sysv/linux/spawni.c
+index e8ed2bab..7a4ab68b 100644
+--- a/sysdeps/unix/sysv/linux/spawni.c
++++ b/sysdeps/unix/sysv/linux/spawni.c
+@@ -27,6 +27,7 @@
+ #include <sysdep.h>
+ #include <sys/resource.h>
+ #include <clone_internal.h>
++#include <fakesyscall.h>
+ 
+ /* The Linux implementation of posix_spawn{p} uses the clone syscall directly
+    with CLONE_VM and CLONE_VFORK flags and an allocated stack.  The new stack
+@@ -265,7 +266,7 @@ __spawni_child (void *arguments)
+ 	    case spawn_do_closefrom:
+ 	      {
+ 		int lowfd = action->action.closefrom_action.from;
+-	        int r = INLINE_SYSCALL_CALL (close_range, lowfd, ~0U, 0);
++	        int r = syscall (__NR_close_range, lowfd, ~0U, 0);
+ 		if (r != 0 && !__closefrom_fallback (lowfd, false))
+ 		  goto fail;
+ 	      } break;
+diff --git a/sysdeps/unix/sysv/linux/statx.c b/sysdeps/unix/sysv/linux/statx.c
+index a6295a15..db970a8d 100644
+--- a/sysdeps/unix/sysv/linux/statx.c
++++ b/sysdeps/unix/sysv/linux/statx.c
+@@ -19,20 +19,11 @@
+ #include <errno.h>
+ #include <sys/stat.h>
+ #include <sysdep.h>
+-#include "statx_generic.c"
++#include <fakesyscall.h>
+ 
+ int
+ statx (int fd, const char *path, int flags,
+        unsigned int mask, struct statx *buf)
+ {
+-  int ret = INLINE_SYSCALL_CALL (statx, fd, path, flags, mask, buf);
+-#ifdef __ASSUME_STATX
+-  return ret;
+-#else
+-  if (ret == 0 || errno != ENOSYS)
+-    /* Preserve non-error/non-ENOSYS return values.  */
+-    return ret;
+-  else
+-    return statx_generic (fd, path, flags, mask, buf);
+-#endif
++  return syscall (__NR_statx, fd, path, flags, mask, buf);
+ }

@@ -1,0 +1,36 @@
+diff --git a/sysdeps/unix/sysv/linux/arm/sigrestorer.S b/sysdeps/unix/sysv/linux/arm/sigrestorer.S
+index 6eacc3f4..7d33283d 100644
+--- a/sysdeps/unix/sysv/linux/arm/sigrestorer.S
++++ b/sysdeps/unix/sysv/linux/arm/sigrestorer.S
+@@ -16,6 +16,7 @@
+    <https://www.gnu.org/licenses/>.  */
+ 
+ #include <sysdep.h>
++#include <disabled-syscall.h>
+ 
+ /* If no SA_RESTORER function was specified by the application we use
+    one of these.  This avoids the need for the kernel to synthesise a return
+diff --git a/sysdeps/unix/sysv/linux/i386/libc_sigaction.c b/sysdeps/unix/sysv/linux/i386/libc_sigaction.c
+index 9d225d5e..70dcf24c 100644
+--- a/sysdeps/unix/sysv/linux/i386/libc_sigaction.c
++++ b/sysdeps/unix/sysv/linux/i386/libc_sigaction.c
+@@ -18,6 +18,7 @@
+ 
+ #include <signal.h>
+ #include <ldsodefs.h>
++#include <disabled-syscall.h>
+ 
+ #define SA_RESTORER 0x04000000
+ 
+diff --git a/sysdeps/unix/sysv/linux/x86_64/libc_sigaction.c b/sysdeps/unix/sysv/linux/x86_64/libc_sigaction.c
+index b39812f8..59c6b490 100644
+--- a/sysdeps/unix/sysv/linux/x86_64/libc_sigaction.c
++++ b/sysdeps/unix/sysv/linux/x86_64/libc_sigaction.c
+@@ -17,6 +17,7 @@
+    <https://www.gnu.org/licenses/>.  */
+ 
+ #include <signal.h>
++#include <disabled-syscall.h>
+ #define SA_RESTORER 0x04000000
+ 
+ extern void restore_rt (void) asm ("__restore_rt") attribute_hidden;

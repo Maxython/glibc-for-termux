@@ -1,0 +1,87 @@
+diff --git a/nptl/pthread_create.c b/nptl/pthread_create.c
+index 1d3665d5..1d02267e 100644
+--- a/nptl/pthread_create.c
++++ b/nptl/pthread_create.c
+@@ -379,16 +379,6 @@ start_thread (void *arg)
+       __libc_fatal ("Fatal glibc error: rseq registration failed\n");
+   }
+ 
+-#ifndef __ASSUME_SET_ROBUST_LIST
+-  if (__nptl_set_robust_list_avail)
+-#endif
+-    {
+-      /* This call should never fail because the initial call in init.c
+-	 succeeded.  */
+-      INTERNAL_SYSCALL_CALL (set_robust_list, &pd->robust_head,
+-			     sizeof (struct robust_list_head));
+-    }
+-
+   /* This is where the try/finally block should be created.  For
+      compilers without that support we do use setjmp.  */
+   struct pthread_unwind_buf unwind_buf;
+diff --git a/sysdeps/nptl/_Fork.c b/sysdeps/nptl/_Fork.c
+index ef199ddb..7d8afcec 100644
+--- a/sysdeps/nptl/_Fork.c
++++ b/sysdeps/nptl/_Fork.c
+@@ -41,8 +41,6 @@ _Fork (void)
+       self->robust_prev = &self->robust_head;
+ #endif
+       self->robust_head.list = &self->robust_head;
+-      INTERNAL_SYSCALL_CALL (set_robust_list, &self->robust_head,
+-			     sizeof (struct robust_list_head));
+     }
+   return pid;
+ }
+diff --git a/sysdeps/nptl/dl-tls_init_tp.c b/sysdeps/nptl/dl-tls_init_tp.c
+index 092c274f..dcc9de5f 100644
+--- a/sysdeps/nptl/dl-tls_init_tp.c
++++ b/sysdeps/nptl/dl-tls_init_tp.c
+@@ -90,14 +90,9 @@ __tls_init_tp (void)
+     pd->robust_head.futex_offset = (offsetof (pthread_mutex_t, __data.__lock)
+                                     - offsetof (pthread_mutex_t,
+                                                 __data.__list.__next));
+-    int res = INTERNAL_SYSCALL_CALL (set_robust_list, &pd->robust_head,
+-                                     sizeof (struct robust_list_head));
+-    if (!INTERNAL_SYSCALL_ERROR_P (res))
+-      {
+ #ifndef __ASSUME_SET_ROBUST_LIST
+-        __nptl_set_robust_list_avail = true;
++    __nptl_set_robust_list_avail = false;
+ #endif
+-      }
+   }
+ 
+   {
+diff --git a/sysdeps/unix/sysv/linux/rseq-internal.h b/sysdeps/unix/sysv/linux/rseq-internal.h
+index 48eebc1e..84c878f3 100644
+--- a/sysdeps/unix/sysv/linux/rseq-internal.h
++++ b/sysdeps/unix/sysv/linux/rseq-internal.h
+@@ -25,28 +25,11 @@
+ #include <stdio.h>
+ #include <sys/rseq.h>
+ 
+-#ifdef RSEQ_SIG
+ static inline bool
+ rseq_register_current_thread (struct pthread *self, bool do_rseq)
+ {
+-  if (do_rseq)
+-    {
+-      int ret = INTERNAL_SYSCALL_CALL (rseq, &self->rseq_area,
+-                                       sizeof (self->rseq_area),
+-                                       0, RSEQ_SIG);
+-      if (!INTERNAL_SYSCALL_ERROR_P (ret))
+-        return true;
+-    }
+   THREAD_SETMEM (self, rseq_area.cpu_id, RSEQ_CPU_ID_REGISTRATION_FAILED);
+   return false;
+ }
+-#else /* RSEQ_SIG */
+-static inline bool
+-rseq_register_current_thread (struct pthread *self, bool do_rseq)
+-{
+-  THREAD_SETMEM (self, rseq_area.cpu_id, RSEQ_CPU_ID_REGISTRATION_FAILED);
+-  return false;
+-}
+-#endif /* RSEQ_SIG */
+ 
+ #endif /* rseq-internal.h */

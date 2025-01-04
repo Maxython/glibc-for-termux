@@ -1,5 +1,5 @@
---- src/sysdeps/unix/sysv/linux/Makefile	2024-01-31 03:34:58.000000000 +0300
-+++ src/sysdeps/unix/sysv/linux/Makefile.patch	2024-02-09 09:06:27.474952654 +0300
+--- glibc-2.39/sysdeps/unix/sysv/linux/Makefile	2024-01-31 03:34:58.000000000 +0300
++++ glibc-2.39/sysdeps/unix/sysv/linux/Makefile.patch	2024-10-01 09:55:41.944107645 +0300
 @@ -95,8 +95,6 @@
    process_vm_writev \
    pselect32 \

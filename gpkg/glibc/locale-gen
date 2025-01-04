@@ -11,10 +11,6 @@ fi
 
 [ -f $LOCALEGEN -a -s $LOCALEGEN ] || exit 0;
 
-# Remove all old locale dir and locale-archive before generating new
-# locale data.
-rm -rf @TERMUX_PREFIX@/lib/locale/* || true
-
 umask 022
 
 is_entry_ok() {

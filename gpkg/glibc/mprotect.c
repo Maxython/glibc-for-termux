@@ -22,7 +22,7 @@
 /* - String To Unsigned Long Int
    There are two chairs - one is called "strtoul", the other "stuli"...
 */
-unsigned long int __stuli(char *value) {
+static unsigned long int __stuli(char *value) {
 	unsigned long int val, res = 0;
 	int len = strlen(value);
 
@@ -42,23 +42,21 @@ unsigned long int __stuli(char *value) {
 
 static int __is_mmaped(void *addr) {
 	char buff[GLOBAL_READ_SIZE];
-	char *buff2 = "";
-	char *cont = "";
+	char *buff2 = NULL;
+	char *cont = NULL;
 	int res = 0;
 	int strlc, strlb;
 	memset(buff, 0, sizeof(buff));
 	int map = __open_nocancel("/proc/self/maps", O_RDONLY|O_CLOEXEC);
 	if (map >= 0) {
 		while (__read_nocancel(map, buff, GLOBAL_READ_SIZE) > 0) {
-			buff[GLOBAL_READ_SIZE] = '\0';
-			strlc = strlen(cont);
+			strlc = cont ? strlen(cont) : 0;
 			if (strlc > 0) {
 				buff2 = malloc(sizeof(char)*strlc);
 				memcpy(buff2, cont, strlc);
 			}
-			cont = malloc(sizeof(char)*(strlc+strlen(buff)));
-			memset(cont, 0, sizeof(cont));
-			strlb = strlen(buff2);
+			cont = calloc(strlc+strlen(buff), sizeof(char));
+			strlb = buff2 ? strlen(buff2): 0;
 			if (strlb > 0)
 				memcpy(cont, buff2, strlb);
 			__strncat(cont, buff, GLOBAL_READ_SIZE);
@@ -89,7 +87,6 @@ int __mprotect(void *addr, size_t len, int prot) {
 			caddr = malloc(saddr);
 			memcpy(caddr, addr, saddr);
 		}
-		free(addr);
 		addr = mmap(addr, len, PROT_READ|PROT_WRITE|PROT_EXEC, mmap_flags, -1, 0);
 		if (saddr > 1)
 			memcpy(addr, caddr, saddr);
